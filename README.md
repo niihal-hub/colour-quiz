@@ -14,12 +14,15 @@ Many personality models (like **DISC** and **Insights Discovery**) group people 
 | 🟢 Green | The Heart | Calm, kind, loyal |
 | 🔵 Blue | The Thinker | Careful, logical, detail-focused |
 
-The quiz has 10 questions. Each answer matches one colour. Your highest score is your colour, and you also see your full mix.
+The quiz has a pool of **100 questions**. Each time, it asks 10 random ones (answers are shuffled too). Each answer matches one colour. Your highest score is your colour, and you also see your full mix.
+
+**Tie-breaker:** if two or more colours have equal top scores, the quiz asks 3 to 6 extra questions that show only the tied colours, until one colour wins.
 
 > ⚠️ This is for fun and self-reflection. It is not a scientific or medical test.
 
 ## Features
-- 10 questions, answers shuffled every time
+- 100-question pool, 10 random questions each time
+- Smart tie-breaker rounds when colours are equal
 - Smooth animations, moving gradient background, colour reveal
 - Keyboard support (press 1–4)
 - Works on phone and desktop
@@ -32,7 +35,8 @@ python3 -m http.server 8000
 ```
 
 ## Customize
-- Edit questions and results in `script.js` (`QUESTIONS` and `COLOURS`)
+- Add or edit questions in `questions.js` (one line per question)
+- Edit colour descriptions in `script.js` (`COLOURS`)
 - Edit design in `style.css`
 
 ## Credits

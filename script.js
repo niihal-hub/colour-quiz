@@ -21,41 +21,46 @@ const COLOURS = {
            best:"Works well with Red (who pushes you to act) and Green (who keeps things relaxed)."}
 };
 
-const QUESTIONS = [
- {q:"On a group trip, you are the one who...", a:{red:"Takes charge and makes the plan",yellow:"Brings the music and the fun",green:"Makes sure everyone is comfortable",blue:"Checks the route and the budget"}},
- {q:"A friend shares a big problem. You...", a:{red:"Give a quick solution",yellow:"Cheer them up and make them smile",green:"Listen quietly and stay with them",blue:"Ask questions to understand the full picture"}},
- {q:"Your perfect weekend is...", a:{red:"Playing a game or sport to win",yellow:"Meeting lots of friends and going out",green:"Home with family and good food",blue:"Reading or learning something new"}},
- {q:"The deadline is close. You...", a:{red:"Push hard and finish it fast",yellow:"Get friends to help and make it fun",green:"Stay calm and go step by step",blue:"Already finished early, now checking for mistakes"}},
- {q:"People often say you are...", a:{red:"Strong and bold",yellow:"Friendly and funny",green:"Kind and patient",blue:"Smart and careful"}},
- {q:"In an argument, you...", a:{red:"Say it straight and don't back down",yellow:"Make a joke to cool things down",green:"Stay quiet to avoid a fight",blue:"Bring facts and proof"}},
- {q:"You are buying a new phone. You...", a:{red:"Pick the fastest and best, decide quickly",yellow:"Pick the one that looks cool",green:"Pick the one that is reliable and trusted",blue:"Compare reviews and specs for days"}},
- {q:"You enter a room full of strangers. You...", a:{red:"Walk in and take the lead",yellow:"Start talking with everyone",green:"Find one friendly face and stay close",blue:"Watch first, speak when you are sure"}},
- {q:"What stresses you the most?", a:{red:"Slow people and wasted time",yellow:"Boredom and being ignored",green:"Sudden changes and fights",blue:"Mistakes and messy plans"}},
- {q:"Your biggest dream is to...", a:{red:"Be a leader or the boss",yellow:"Be loved and known by many people",green:"Live a peaceful life with loved ones",blue:"Become an expert in your field"}}
-];
 
 const $ = id => document.getElementById(id);
 const show = id => { document.querySelectorAll(".screen").forEach(s => s.classList.remove("active")); $(id).classList.add("active"); };
-let i, scores, locked;
+const QUIZ_LENGTH = 10, MIN_EXTRA = 3, MAX_EXTRA = 6;
+const KEYS = ["red", "yellow", "green", "blue"];
+let deck, i, scores, locked, tied, extra;
+
+const shuffle = a => { a = a.slice(); for (let n = a.length - 1; n > 0; n--) { const m = Math.floor(Math.random() * (n + 1)); [a[n], a[m]] = [a[m], a[n]]; } return a; };
+const gap = () => { const v = Object.values(scores).sort((a, b) => b - a); return v[0] - v[1]; };
+
+// Colours that are close to the top score: these get the tie-breaker questions
+function contenders(){
+  const sorted = KEYS.slice().sort((a, b) => scores[b] - scores[a]);
+  const n = Math.max(2, sorted.filter(k => scores[k] >= scores[sorted[0]] - 1).length);
+  return sorted.slice(0, n);
+}
 
 function start(){
-  i = 0; locked = false;
+  deck = shuffle(POOL); i = 0; extra = 0; tied = null; locked = false;
   scores = {red:0, yellow:0, green:0, blue:0};
   document.body.style.removeProperty("--accent");
   document.body.style.removeProperty("--accent2");
+  next();
+}
+
+function next(){
   show("quiz"); render();
+  const q = $("quiz"); q.style.animation = "none"; void q.offsetWidth; q.style.animation = "";
 }
 
 function render(){
-  const item = QUESTIONS[i];
-  $("count").textContent = `Question ${i+1} of ${QUESTIONS.length}`;
-  $("bar").style.width = (i / QUESTIONS.length * 100) + "%";
-  $("question").textContent = item.q;
+  const [q, ...ans] = deck[i];
+  $("count").textContent = tied ? `Tie-breaker ${extra}: your colours are very close!` : `Question ${i+1} of ${QUIZ_LENGTH}`;
+  $("bar").style.width = tied ? "100%" : (i / QUIZ_LENGTH * 100) + "%";
+  $("question").textContent = q;
   const box = $("answers"); box.innerHTML = "";
-  Object.keys(item.a).sort(() => Math.random() - .5).forEach((c, n) => {
+  shuffle(tied || KEYS).forEach((c, n) => {
     const b = document.createElement("button");
     b.className = "ans"; b.style.animationDelay = (n * .08) + "s";
-    b.innerHTML = `<span>${n+1}</span>${item.a[c]}`;
+    b.innerHTML = `<span>${n+1}</span>${ans[KEYS.indexOf(c)]}`;
     b.onclick = () => pick(c, b);
     box.appendChild(b);
   });
@@ -64,11 +69,12 @@ function render(){
 
 function pick(c, btn){
   if (locked) return; locked = true;
-  btn.classList.add("picked"); scores[c]++;
+  btn.classList.add("picked"); scores[c]++; i++;
   setTimeout(() => {
-    i++;
-    if (i < QUESTIONS.length) { show("quiz"); render(); $("quiz").style.animation="none"; void $("quiz").offsetWidth; $("quiz").style.animation=""; }
-    else finish();
+    if (i < QUIZ_LENGTH) return next();
+    const g = gap();
+    if ((extra === 0 && g > 0) || (extra >= MIN_EXTRA && g > 0) || extra >= MAX_EXTRA) return finish();
+    extra++; tied = contenders(); next();
   }, 380);
 }
 
@@ -79,7 +85,7 @@ function finish(){
 }
 
 function result(){
-  const total = QUESTIONS.length;
+  const total = i;
   const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
   const [top, second] = [sorted[0][0], sorted[1][0]];
   const C = COLOURS[top];
