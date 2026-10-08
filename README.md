@@ -24,7 +24,12 @@ The quiz has a pool of **100 questions**. Each time, it asks 10 random ones (ans
 - 100-question pool, 10 random questions each time
 - Smart tie-breaker rounds when colours are equal
 - Smooth animations, moving gradient background, colour reveal
-- Keyboard support (press 1–4)
+- Skip button on every question (up to 5 skips, skipped questions do not count)
+- Mixed-style names like "The Strategist" (Red + Blue) when two colours are close
+- Careers that fit each colour
+- Save your result as a share-card image (PNG)
+- Glow that follows your mouse, floating sparks, colour-reveal animation
+- Keyboard support (press 1–4 to answer, 0 to skip)
 - Works on phone and desktop
 - No libraries, no build step
 
